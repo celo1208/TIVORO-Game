@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIVORO Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4A90E2; /* A nice blue */
+            --background-color: #F0F2F5;
+            --container-bg: #FFFFFF;
+            --text-dark: #222222;
+            --text-light: #555555;
+            --border-color: #DDDDDD;
+            --success-color: #50C878;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            padding: 30px 40px;
+            background-color: var(--container-bg);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+            text-align: center;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: var(--text-light);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .color-option {
+            border: 4px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            aspect-ratio: 1 / 1;
+        }
+
+        .color-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .color-option.selected {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(74, 144, 226, 0.6);
+            transform: scale(1.05);
+        }
+
+        button, a.button {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        button:hover, a.button:hover {
+            background-color: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        button:disabled {
+            background-color: #B0C4DE;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        a#submit-button {
+            background-color: var(--success-color);
+        }
+
+        a#submit-button:hover {
+             background-color: #40A060;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #final-screen .image-grid {
+            max-width: 400px;
+            margin: 30px auto;
+        }
+
+        #final-screen h3 {
+            font-size: 1.8rem;
+            margin-top: 30px;
+            margin-bottom: 5px;
+        }
+        
+        #final-screen .sub-message {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 40px; /* Added more space for the button */
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.3rem; }
+            .image-grid {
+                gap: 10px;
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="start-screen">
+        <h1>TIVORO Game</h1>
+        <button id="begin-button">Begin Game</button>
+    </div>
+
+    <div class="container hidden" id="game-screen">
+        <h2 id="round-title">Round 1</h2>
+        <p id="round-instruction">Choose your 2 favorite options.</p>
+        <div class="image-grid" id="game-grid">
+            <!-- Images will be dynamically inserted here -->
+        </div>
+        <button id="next-round-button" disabled>Next Round</button>
+    </div>
+
+    <div class="container hidden" id="final-screen">
+        <h1>Thank you for helping Marcelo's research!</h1>
+        <h3>Your Winners:</h3>
+        <div class="image-grid" id="winner-grid">
+            <!-- Winning images will be shown here -->
+        </div>
+        <p class="sub-message">Your winners may be on Amazon soon.</p>
+        <a href="#" id="submit-button" class="button" target="_blank" rel="noopener noreferrer">Submit Your Winners</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Configuration ---
+
+            // SIDE NOTE: EDIT YOUR IMAGE OPTIONS FOR EACH ROUND HERE.
+            // Replace the `name` and `image` values with your own.
+            // The image can be a URL or a local filename (e.g., "my-image.jpg").
+            
+            // --- ROUND 1 OPTIONS (4 images) ---
+            const ROUND_1_OPTIONS = [
+                { name: "Black Marble", image: "IMG_4149.JPG" },
+                { name: "Black Travertine", image: "IMG_4153.JPG" },
+                { name: "Roman Travertine", image: "IMG_4150.JPG" },
+                { name: "Bianco Carrara", image: "IMG_4152.JPG" }
+            ];
+
+            // --- ROUND 2 OPTIONS (4 images) ---
+            const ROUND_2_OPTIONS = [
+                { name: "Cartier Marble", image: "IMG_4158.JPG" },
+                { name: "Green marble", image: "IMG_4157.JPG" },
+                { name: "Rossa Red", image: "IMG_4159.JPG" },
+                { name: "Red Travertine", image: "IMG_4155.JPG" }
+            ];
+
+            // --- ROUND 3 OPTIONS (3 images) ---
+            const ROUND_3_OPTIONS = [
+                { name: "Cream Rose", image: "IMG_4148.JPG" },
+                { name: "Lilac White", image: "IMG_4160.JPG" },
+                { name: "Arabescato", image: "IMG_4156.JPG" }
+            ];
+
+            // --- ROUND 4 OPTIONS (3 images) ---
+            const ROUND_4_OPTIONS = [
+                { name: "Green Onyx", image: "IMG_4161.JPG" },
+                { name: "White Onyx", image: "IMG_4151.JPG" },
+                { name: "Silver Travertine", image: "IMG_4154.JPG" }
+            ];
+
+            // This combines all your options into one master list for the game to use.
+            const ALL_COLORS = [...ROUND_1_OPTIONS, ...ROUND_2_OPTIONS, ...ROUND_3_OPTIONS, ...ROUND_4_OPTIONS];
+
+
+            // --- DOM Elements ---
+            const startScreen = document.getElementById('start-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const finalScreen = document.getElementById('final-screen');
+            const beginButton = document.getElementById('begin-button');
+            const nextButton = document.getElementById('next-round-button');
+            const grid = document.getElementById('game-grid');
+            const roundTitle = document.getElementById('round-title');
+            const roundInstruction = document.getElementById('round-instruction');
+
+            // --- Game State ---
+            let currentRound = 0;
+            let selections = [];
+            const roundWinners = {};
+            let brackets = {};
+
+            // --- Utility Functions ---
+            const shuffle = (array) => {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            };
+
+            const switchScreen = (screenToShow) => {
+                [startScreen, gameScreen, finalScreen].forEach(screen => {
+                    screen.classList.add('hidden');
+                });
+                screenToShow.classList.remove('hidden');
+            };
+
+            // --- Game Logic ---
+            const initGame = () => {
+                currentRound = 0;
+                selections = [];
+                for (let key in roundWinners) delete roundWinners[key];
+                
+                // Set up the brackets directly from your configured options
+                brackets = {
+                    round1: shuffle([...ROUND_1_OPTIONS]), // Shuffle within the round for variety
+                    round2: shuffle([...ROUND_2_OPTIONS]),
+                    round3: shuffle([...ROUND_3_OPTIONS]),
+                    round4: shuffle([...ROUND_4_OPTIONS]),
+                };
+                switchScreen(gameScreen);
+                displayNextRound();
+            };
+            
+            const displayNextRound = () => {
+                currentRound++;
+                grid.innerHTML = '';
+                selections = [];
+                nextButton.disabled = true;
+
+                let colorsToShow = [];
+                const pickCount = 2;
+
+                roundInstruction.textContent = `Choose your 2 favorite options.`;
+
+                switch(currentRound) {
+                    case 1:
+                        roundTitle.textContent = "Round 1 of 7";
+                        colorsToShow = brackets.round1;
+                        break;
+                    case 2:
+                        roundTitle.textContent = "Round 2 of 7";
+                        colorsToShow = brackets.round2;
+                        break;
+                    case 3:
+                        roundTitle.textContent = "Round 3 of 7";
+                        colorsToShow = brackets.round3;
+                        break;
+                    case 4:
+                        roundTitle.textContent = "Round 4 of 7";
+                        colorsToShow = brackets.round4;
+                        break;
+                    case 5:
+                        roundTitle.textContent = "Round 5 of 7";
+                        colorsToShow = [...roundWinners['round1'], ...roundWinners['round2']];
+                        break;
+                    case 6:
+                        roundTitle.textContent = "Round 6 of 7";
+                        colorsToShow = [...roundWinners['round3'], ...roundWinners['round4']];
+                        break;
+                    case 7:
+                        roundTitle.textContent = "Final Round!";
+                        colorsToShow = [...roundWinners['round5'], ...roundWinners['round6']];
+                        nextButton.textContent = "See Winners";
+                        break;
+                    default:
+                        showFinalScreen();
+                        return;
+                }
+
+                colorsToShow.forEach(color => {
+                    const div = document.createElement('div');
+                    div.className = 'color-option';
+                    div.dataset.colorName = color.name;
+                    div.innerHTML = `<img src="${color.image}" alt="${color.name}">`;
+                    div.addEventListener('click', () => toggleSelect(div, pickCount));
+                    grid.appendChild(div);
+                });
+            };
+
+            const toggleSelect = (div, pickCount) => {
+                const isSelected = div.classList.contains('selected');
+
+                if (isSelected) {
+                    div.classList.remove('selected');
+                    selections = selections.filter(item => item !== div);
+                } else {
+                    if (selections.length < pickCount) {
+                        div.classList.add('selected');
+                        selections.push(div);
+                    } else {
+                        // Optional: Replace the first selection with the new one
+                        const firstSelected = selections.shift();
+                        firstSelected.classList.remove('selected');
+                        div.classList.add('selected');
+                        selections.push(div);
+                    }
+                }
+                nextButton.disabled = selections.length !== pickCount;
+            };
+
+            const processRound = () => {
+                const winners = selections.map(div => {
+                    const name = div.dataset.colorName;
+                    return ALL_COLORS.find(c => c.name === name);
+                });
+
+                roundWinners[`round${currentRound}`] = winners;
+
+                if (currentRound < 7) {
+                    displayNextRound();
+                } else {
+                    showFinalScreen();
+                }
+            };
+
+            const showFinalScreen = () => {
+                const winnerGrid = document.getElementById('winner-grid');
+                winnerGrid.innerHTML = '';
+                const finalWinners = roundWinners['round7'];
+
+                finalWinners.forEach(winner => {
+                     winnerGrid.innerHTML += `
+                        <div class="color-option">
+                            <img src="${winner.image}" alt="${winner.name}">
+                        </div>
+                    `;
+                });
+                
+                // --- Link Google Form for Data Submission ---
+                const submitButton = document.getElementById('submit-button');
+                const winnerNames = finalWinners.map(w => w.name).join(', ');
+                const encodedWinnerNames = encodeURIComponent(winnerNames);
+
+                // Based on your form link, this constructs the pre-filled URL.
+                const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSdSGEat48tuHtscs4Crc6Lu-7TcNtoLegEnr8_BMROqQQR8Gg/viewform?usp=pp_url&entry.1241288396=${encodedWinnerNames}`;
+
+                submitButton.href = formUrl;
+
+                switchScreen(finalScreen);
+            };
+
+            // --- Event Listeners ---
+            beginButton.addEventListener('click', initGame);
+            nextButton.addEventListener('click', processRound);
+        });
+    </script>
+</body>
+</html>
